@@ -36,8 +36,19 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse SonarQube...'
-                // Appel direct du scanner SonarQube local
-                sh 'sonar-scanner -Dproject.settings=sonar-project.properties'
+                // Utilise l'installation SonarQube définie dans Jenkins
+                withSonarQubeEnv('SonarQube') {
+                    sh 'mvn clean verify sonar:sonar -Dsonar.projectKey=calculatrice -Dsonar.host.url=http://localhost:9000 -Dsonar.login=sqp_dc414376baf22b4c74012cd50f0e223d9ef3b9b0'
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo 'Vérification du Quality Gate...'
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
@@ -51,10 +62,10 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline réussi !'
+            echo 'Pipeline réussi ! 🎉'
         }
         failure {
-            echo 'Pipeline échoué.'
+            echo 'Pipeline échoué. ❌'
         }
         always {
             echo 'Nettoyage de l’espace de travail...'
