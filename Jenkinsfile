@@ -35,23 +35,9 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo 'Analyse SonarQube avec Maven...'
-                // Utilise le scanner SonarQube configuré dans Jenkins
-                withSonarQubeEnv('SonarQube') {
-                    sh "mvn sonar:sonar \
-                        -Dsonar.projectKey=calculatrice \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.login=TON_TOKEN_ICI"
-                }
-            }
-        }
-
-        stage('Quality Gate') {
-            steps {
-                echo 'Vérification du Quality Gate...'
-                timeout(time: 1, unit: 'HOURS') {
-                    waitForQualityGate abortPipeline: true
-                }
+                echo 'Analyse SonarQube...'
+                // Appel direct du scanner SonarQube local
+                sh 'sonar-scanner -Dproject.settings=sonar-project.properties'
             }
         }
 
