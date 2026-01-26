@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     tools {
-        maven 'Maven-3.9' // Assure-toi que Maven est configuré dans Jenkins
+        maven 'Maven-3.9' // Assure-toi que Maven est configuré dans Jenkins sous ce nom
     }
 
     stages {
@@ -36,8 +36,23 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse SonarQube...'
-                // Appel direct du scanner SonarQube local
-                sh 'sonar-scanner -Dproject.settings=sonar-project.properties'
+                withSonarQubeEnv('SonarQube') { // Nom défini dans Jenkins Configuration
+                    sh '''
+                    mvn clean verify sonar:sonar \
+                        -Dsonar.projectKey=calculatrice \
+                        -Dsonar.host.url=http://localhost:9000 \
+                        -Dsonar.login=sqp_dc414376baf22b4c74012cd50f0e223d9ef3b9b0
+                    '''
+                }
+            }
+        }
+
+        stage('Quality Gate') {
+            steps {
+                echo 'Vérification du Quality Gate SonarQube...'
+                timeout(time: 1, unit: 'HOURS') {
+                    waitForQualityGate abortPipeline: true
+                }
             }
         }
 
