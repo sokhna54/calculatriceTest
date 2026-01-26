@@ -36,13 +36,15 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 echo 'Analyse SonarQube...'
-                withSonarQubeEnv('SonarQube') { // nom exact de ton serveur configuré Jenkins
-                    sh '''
-                    mvn clean verify sonar:sonar \
-                      -Dsonar.projectKey=calculatrice \
-                      -Dsonar.host.url=http://sonarqube:9000 \
-                      -Dsonar.login=sqp_dc414376baf22b4c74012cd50f0e223d9ef3b9b0
-                    '''
+                withSonarQubeEnv('SonarQube') { // Nom exact du serveur configuré Jenkins
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                        mvn clean verify sonar:sonar \
+                          -Dsonar.projectKey=calculatrice \
+                          -Dsonar.host.url=http://sonarqube:9000 \
+                          -Dsonar.login=$SONAR_TOKEN
+                        '''
+                    }
                 }
             }
         }
